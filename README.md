@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Project: Momentum - Frontend (Next.js)
 
-## Getting Started
+Antarmuka pengguna (UI) yang modern, responsif, dan interaktif untuk aplikasi Project Momentum. Dibangun menggunakan Next.js, TypeScript, dan Tailwind CSS.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Tentang Proyek (About The Project)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ini adalah sisi klien dari aplikasi AI Productivity Coach, Project Momentum. Frontend ini dirancang untuk memberikan pengalaman pengguna yang mulus dan menyenangkan, memungkinkan pengguna untuk berinteraksi dengan jadwal harian mereka, menetapkan tujuan jangka panjang, dan menerima feedback dari AI. Aplikasi ini terhubung ke [Backend API Go](https://github.com/link-ke-repo-backend-anda) yang berjalan secara terpisah.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Tampilan (Screenshots)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+_Tempelkan screenshot aplikasi Anda di sini untuk membuatnya lebih menarik._
 
-## Learn More
+|                 Halaman Login                  |                Dashboard Utama                 |              Halaman Roadmap               |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------: |
+| ![Halaman Login](link/ke/screenshot_login.png) | ![Dashboard](link/ke/screenshot_dashboard.png) | ![Roadmap](link/ke/screenshot_roadmap.png) |
 
-To learn more about Next.js, take a look at the following resources:
+### Fitur Utama (Core Features)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Alur Autentikasi Lengkap:** Halaman registrasi, login, dan fungsionalitas logout yang aman menggunakan `httpOnly` cookie.
+- **Rute Terproteksi:** Pengguna yang belum login akan secara otomatis diarahkan ke halaman login.
+- **Dashboard Tugas Dinamis:** Menampilkan jadwal tugas harian yang diambil secara _real-time_ dari backend, lengkap dengan status _loading_ yang elegan.
+- **Manajemen Tugas Lengkap (CRUD):**
+  - Menambah tugas manual baru melalui _dialog popup_.
+  - Mengubah status tugas (selesai/pending) dengan _checkbox_.
+  - Menghapus tugas dengan dialog konfirmasi yang aman.
+- **Onboarding Pengguna:** Alur intuitif bagi pengguna baru untuk menetapkan tujuan utama mereka jika belum ada.
+- **Manajemen Tujuan:** Menampilkan tujuan utama dan langkah-langkah roadmap yang dihasilkan AI.
+- **Pengaturan Pengguna:** Termasuk fungsionalitas ganti tema (Light/Dark Mode) dan form untuk mengubah password.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Teknologi & Pustaka Utama (Tech Stack)
 
-## Deploy on Vercel
+- **Framework:** Next.js 14+ (dengan App Router)
+- **Bahasa:** TypeScript
+- **Styling:** Tailwind CSS v4
+- **Pustaka Komponen:** Shadcn/UI
+- **Manajemen Data Server:** TanStack Query (React Query) v5
+- **Notifikasi:** React Hot Toast
+- **Ikon:** Lucide React
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Instalasi & Menjalankan Lokal
+
+Untuk menjalankan proyek ini di lingkungan lokal Anda, ikuti langkah-langkah berikut.
+
+**1. Prasyarat**
+
+- Node.js (versi 18 atau lebih baru)
+- NPM atau Yarn
+
+**2. Setup Proyek**
+
+1.  **Clone repositori:**
+
+    ```bash
+    git clone [https://github.com/username/project-momentum-frontend.git](https://github.com/username/project-momentum-frontend.git)
+    cd project-momentum-frontend
+    ```
+
+2.  **Instalasi Dependencies:**
+
+    ```bash
+    npm install
+    ```
+
+3.  **Konfigurasi Environment Variable:**
+    Buat file `.env.local` di root proyek dengan menyalin dari contoh.
+
+    ```bash
+    cp .env.local.example .env.local
+    ```
+
+    _Buat file `.env.local.example` terlebih dahulu dengan isi sebagai berikut:_
+
+    ```env
+    NEXT_PUBLIC_API_URL=http://localhost:8080
+    ```
+
+    Isi file `.env.local` Anda. Untuk development, nilainya adalah alamat backend lokal Anda.
+
+4.  **Jalankan Backend Server Lokal:**
+    Pastikan server backend Go Anda berjalan di terminal terpisah di `http://localhost:8080`.
+
+5.  **Jalankan Frontend Server Development:**
+    ```bash
+    npm run dev
+    ```
+    Buka [http://localhost:3000](http://localhost:3000) di browser Anda.
+
+### Menghubungkan ke Backend
+
+Untuk mengubah alamat API tujuan (antara lokal dan produksi), cukup ubah nilai `NEXT_PUBLIC_API_URL` di file `.env.local` Anda tanpa perlu mengubah kode JavaScript/TypeScript.
+
+- **Untuk Development:** `NEXT_PUBLIC_API_URL=http://localhost:8080`
+- **Untuk Produksi:** `NEXT_PUBLIC_API_URL=https://alamat-api-fly-io-anda.fly.dev`
+
+---
+
+## Berkontribusi (Contributing)
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## Lisensi (License)
+
+[MIT](https://choosealicense.com/licenses/mit/)
