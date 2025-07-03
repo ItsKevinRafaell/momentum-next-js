@@ -1,5 +1,17 @@
-// file: src/app/settings/page.tsx
 'use client';
+
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+
+import {
+  changePassword,
+  getCurrentUser,
+  logoutUser,
+} from '@/services/authService';
+import { User } from '@/types';
 
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -12,12 +24,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { changePassword, logoutUser } from '@/services/authService';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useTheme } from 'next-themes';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import toast from 'react-hot-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SettingsPage() {
   const { setTheme, theme } = useTheme();
@@ -29,14 +36,20 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Mutasi untuk ubah password
+  // Query untuk mendapatkan data user saat ini
+  const { data: user, isLoading: isLoadingUser } = useQuery<User, Error>({
+    queryKey: ['currentUser'],
+    queryFn: getCurrentUser,
+  });
+
+  // Mutasi untuk mengubah password
   const changePasswordMutation = useMutation({
     mutationFn: changePassword,
     onSuccess: () => {
       toast.success(
         'Password berhasil diubah! Anda akan di-logout untuk login kembali.'
       );
-      // Panggil logout untuk membersihkan sesi saat ini
+      // Logout secara otomatis untuk keamanan
       logoutUser().finally(() => {
         queryClient.clear();
         router.push('/login');
@@ -49,12 +62,12 @@ export default function SettingsPage() {
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      toast.error('Password baru dan konfirmasi tidak cocok.');
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error('Semua kolom password harus diisi.');
       return;
     }
-    if (!currentPassword || !newPassword) {
-      toast.error('Semua field harus diisi.');
+    if (newPassword !== confirmPassword) {
+      toast.error('Password baru dan konfirmasi tidak cocok.');
       return;
     }
     changePasswordMutation.mutate({
@@ -68,10 +81,32 @@ export default function SettingsPage() {
       <div className='grid gap-6'>
         <Card>
           <CardHeader>
+            <CardTitle>Profil Akun</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className='space-y-2'>
+              <Label htmlFor='email'>Alamat Email</Label>
+              {isLoadingUser ? (
+                <Skeleton className='h-10 w-full' />
+              ) : (
+                <Input
+                  id='email'
+                  type='email'
+                  value={user?.email || ''}
+                  readOnly
+                  disabled
+                />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Ubah Password</CardTitle>
             <CardDescription>
-              Ganti password Anda di sini. Setelah berhasil, Anda akan di-logout
-              secara otomatis.
+              Setelah berhasil, Anda akan di-logout dan perlu login kembali
+              dengan password baru.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -108,7 +143,7 @@ export default function SettingsPage() {
               <Button type='submit' disabled={changePasswordMutation.isPending}>
                 {changePasswordMutation.isPending
                   ? 'Menyimpan...'
-                  : 'Simpan Perubahan'}
+                  : 'Simpan Password Baru'}
               </Button>
             </form>
           </CardContent>

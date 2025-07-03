@@ -1,4 +1,9 @@
-import { ChangePasswordPayload, LoginPayload, RegisterPayload } from '@/types'; // Kita akan buat tipe ini nanti
+import {
+  ChangePasswordPayload,
+  LoginPayload,
+  RegisterPayload,
+  User,
+} from '@/types'; // Kita akan buat tipe ini nanti
 import { getAuthHeaders } from './apiService';
 
 // Ganti URL ini dengan URL produksi backend Anda dari Fly.io
@@ -65,5 +70,17 @@ export const changePassword = async (payload: ChangePasswordPayload) => {
     throw new Error(errorData.error || 'Failed to change password');
   }
 
+  return response.json();
+};
+
+export const getCurrentUser = async (): Promise<User> => {
+  const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    throw new Error('Not authenticated');
+  }
   return response.json();
 };
