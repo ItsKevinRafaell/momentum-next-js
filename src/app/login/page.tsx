@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
+import { setCookie } from 'cookies-next';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -27,11 +28,15 @@ export default function LoginPage() {
   const mutation = useMutation({
     mutationFn: (credentials: LoginPayload) => loginUser(credentials),
     onSuccess: (data) => {
-      toast.success('Login Berhasil!');
-      console.log(data.token);
-      // router.refresh() akan memuat ulang data dari server.
-      // Middleware akan mendeteksi cookie baru dan mengarahkan ke halaman utama.
-      router.refresh();
+      if (data.token) {
+        toast.success('Login Berhasil!');
+        // Simpan token ke dalam cookie dari sisi klien
+        setCookie('token', data.token, { maxAge: 60 * 60 * 24 });
+        // Refresh halaman agar middleware bisa membaca cookie & redirect
+        router.refresh();
+      } else {
+        toast.error('Token tidak ditemukan di respons server.');
+      }
     },
     onError: (error) => {
       toast.error('Login Gagal: ' + error.message);

@@ -16,6 +16,8 @@ import toast from 'react-hot-toast';
 import { logoutUser } from '@/services/authService';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { deleteCookie } from 'cookies-next'; // Untuk menghapus cookie saat logout
+
 // Definisikan item menu kita dalam sebuah array agar mudah dikelola
 const menuItems = [
   { name: 'Jadwal Hari Ini', icon: LayoutDashboard, href: '/' },
@@ -32,6 +34,12 @@ export default function Sidebar() {
   const router = useRouter();
 
   const pathname = usePathname();
+
+  const handleLogout = () => {
+    deleteCookie('token');
+    router.refresh();
+    toast.success('Anda berhasil logout!');
+  };
 
   // Mutasi untuk logout
   const logoutMutation = useMutation({
@@ -94,7 +102,7 @@ export default function Sidebar() {
           <Button
             variant='ghost'
             className='w-full justify-start'
-            onClick={() => logoutMutation.mutate()} // Panggil mutasi saat diklik
+            onClick={handleLogout} // Panggil mutasi saat diklik
             disabled={logoutMutation.isPending} // Nonaktifkan saat proses logout
           >
             <LogOut className='mr-3 h-4 w-4' />
