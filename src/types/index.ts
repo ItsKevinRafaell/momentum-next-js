@@ -67,3 +67,8 @@ export interface ActiveGoalResponse {
 export interface CreateGoalPayload {
   description: string;
 }
+
+export interface UpdateGoalPayload {
+  goalId: string;
+  description: string;
+}

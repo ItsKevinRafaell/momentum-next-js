@@ -5,6 +5,7 @@ import {
   ReviewResponse,
   ActiveGoalResponse,
   CreateGoalPayload,
+  UpdateGoalPayload,
 } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -148,5 +149,20 @@ export const createGoal = async (
     throw new Error(errorData.error || 'Failed to create goal');
   }
 
+  return response.json();
+};
+
+export const updateGoal = async (
+  payload: UpdateGoalPayload
+): Promise<ActiveGoalResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/goals/${payload.goalId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ description: payload.description }),
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to update goal');
+  }
   return response.json();
 };
