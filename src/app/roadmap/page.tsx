@@ -4,12 +4,14 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getActiveGoal } from '@/services/apiService';
-import { ActiveGoalResponse } from '@/types';
+import { ActiveGoalResponse, RoadmapStep } from '@/types';
 import { Pencil, PlusCircle, Target } from 'lucide-react';
 
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import CreateGoalForm from '@/components/goals/CreateGoalForm';
 import EditGoalForm from '@/components/goals/EditGoalForm';
+import AddRoadmapStepForm from '@/components/goals/AddRoadmapStepForm';
+import EditRoadmapStepForm from '@/components/goals/EditRoadmapStepForm'; // <-- Import baru
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,11 +22,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import AddRoadmapStepForm from '@/components/goals/AddRoadmapStepForm';
 
 export default function RoadmapPage() {
+  // State untuk mengontrol semua dialog
   const [isAddStepOpen, setIsAddStepOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isEditGoalOpen, setIsEditGoalOpen] = useState(false);
+  const [editingStep, setEditingStep] = useState<RoadmapStep | null>(null);
 
   const { data, isLoading, isError, error } = useQuery<
     ActiveGoalResponse,
@@ -40,7 +43,6 @@ export default function RoadmapPage() {
         <div className='space-y-4'>
           <Skeleton className='h-24 w-full' />
           <Skeleton className='h-16 w-full' />
-          <Skeleton className='h-16 w-full' />
         </div>
       </DashboardLayout>
     );
@@ -54,7 +56,6 @@ export default function RoadmapPage() {
     );
   }
 
-  // Jika tidak ada goal, tampilkan form untuk membuat goal
   if (!data?.goal) {
     return (
       <DashboardLayout title='Roadmap & Tujuan'>
@@ -63,7 +64,6 @@ export default function RoadmapPage() {
     );
   }
 
-  // Jika ada goal, tampilkan detailnya
   return (
     <DashboardLayout title='Roadmap & Tujuan'>
       <div className='space-y-6'>
@@ -73,8 +73,7 @@ export default function RoadmapPage() {
             <CardTitle className='flex items-center gap-2'>
               <Target /> Tujuan Utama Anda
             </CardTitle>
-
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <Dialog open={isEditGoalOpen} onOpenChange={setIsEditGoalOpen}>
               <DialogTrigger asChild>
                 <Button
                   variant='ghost'
@@ -90,7 +89,7 @@ export default function RoadmapPage() {
                 </DialogHeader>
                 <EditGoalForm
                   currentGoal={data.goal}
-                  onSuccess={() => setIsEditDialogOpen(false)}
+                  onSuccess={() => setIsEditGoalOpen(false)}
                 />
               </DialogContent>
             </Dialog>
@@ -126,10 +125,25 @@ export default function RoadmapPage() {
             {Array.isArray(data.steps) && data.steps.length > 0 ? (
               data.steps.map((step) => (
                 <Card key={step.id}>
-                  <CardContent className='p-4'>
-                    <p className='font-semibold'>
+                  <CardContent className='p-3 flex items-center justify-between'>
+                    <p className='font-semibold flex-1'>
                       Langkah {step.step_order}: {step.title}
                     </p>
+                    <div className='flex items-center'>
+                      {/* Tombol Edit untuk setiap langkah */}
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                        className='h-8 w-8 text-slate-500 hover:text-blue-500'
+                        onClick={() => setEditingStep(step)}
+                      >
+                        <Pencil className='h-4 w-4' />
+                      </Button>
+                      {/* Placeholder untuk tombol hapus nanti */}
+                      {/* <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-red-500">
+                            <Trash2 className="h-4 w-4" />
+                        </Button> */}
+                    </div>
                   </CardContent>
                 </Card>
               ))
@@ -141,6 +155,25 @@ export default function RoadmapPage() {
           </div>
         </div>
       </div>
+
+      {/* --- DIALOG UNTUK EDIT LANGKAH ROADMAP --- */}
+      {/* Dialog ini berada di luar map, dan hanya muncul jika ada `editingStep` */}
+      <Dialog
+        open={!!editingStep}
+        onOpenChange={(open) => !open && setEditingStep(null)}
+      >
+        <DialogContent className='sm:max-w-[425px]'>
+          <DialogHeader>
+            <DialogTitle>Edit Langkah Roadmap</DialogTitle>
+          </DialogHeader>
+          {editingStep && (
+            <EditRoadmapStepForm
+              step={editingStep}
+              onSuccess={() => setEditingStep(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

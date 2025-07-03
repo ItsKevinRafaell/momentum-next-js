@@ -8,6 +8,7 @@ import {
   UpdateGoalPayload,
   AddRoadmapStepPayload,
   RoadmapStep,
+  UpdateRoadmapStepPayload,
 } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -184,6 +185,26 @@ export const addRoadmapStep = async (
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.error || 'Failed to add roadmap step');
+  }
+
+  return response.json();
+};
+
+export const updateRoadmapStep = async (
+  payload: UpdateRoadmapStepPayload
+): Promise<RoadmapStep> => {
+  const { stepId, title } = payload;
+
+  const response = await fetch(`${API_BASE_URL}/api/roadmap-steps/${stepId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ title }),
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to update roadmap step');
   }
 
   return response.json();
