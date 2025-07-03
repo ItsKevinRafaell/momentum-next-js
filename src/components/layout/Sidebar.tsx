@@ -16,7 +16,6 @@ import toast from 'react-hot-toast';
 import { logoutUser } from '@/services/authService';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { deleteCookie } from 'cookies-next'; // Untuk menghapus cookie saat logout
 
 // Definisikan item menu kita dalam sebuah array agar mudah dikelola
 const menuItems = [
@@ -36,9 +35,9 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   const handleLogout = () => {
-    deleteCookie('token');
-    router.refresh();
+    localStorage.removeItem('token');
     toast.success('Anda berhasil logout!');
+    window.location.assign('/login');
   };
 
   // Mutasi untuk logout

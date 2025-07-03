@@ -9,6 +9,17 @@ import {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
+export const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+};
+
 export const getTodaySchedule = async (): Promise<Task[]> => {
   const response = await fetch(`${API_BASE_URL}/api/schedule/today`, {
     method: 'GET',
@@ -16,10 +27,7 @@ export const getTodaySchedule = async (): Promise<Task[]> => {
     next: {
       revalidate: 0, // Revalidasi setiap 60 deti
     },
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    // PENTING: Ini memberitahu browser untuk mengirim httpOnly cookie kita
+    headers: getAuthHeaders(),
     credentials: 'include',
   });
 
@@ -44,11 +52,7 @@ export const updateTaskStatus = async (payload: UpdateTaskStatusPayload) => {
     next: {
       revalidate: 0, // Revalidasi setiap 60 deti
     },
-    headers: {
-      'Content-Type': 'application/json',
-      // Kita bisa menambahkan header lain jika diperlukan, misalnya untuk autentikasi
-      // Authorization: `Bearer ${token}`, // Jika menggunakan token
-    }, // Menggunakan helper yang sudah ada
+    headers: getAuthHeaders(),
     body: JSON.stringify({ status }),
     credentials: 'include',
   });
@@ -66,11 +70,7 @@ export const createManualTask = async (
 ): Promise<Task> => {
   const response = await fetch(`${API_BASE_URL}/api/tasks`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      // Kita bisa menambahkan header lain jika diperlukan, misalnya untuk autentikasi
-      // Authorization: `Bearer ${token}`, // Jika menggunakan token
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(payload),
     credentials: 'include',
   });
@@ -86,11 +86,7 @@ export const createManualTask = async (
 export const deleteTask = async (taskId: string): Promise<Response> => {
   const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
     method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-      // Kita bisa menambahkan header lain jika diperlukan, misalnya untuk autentikasi
-      // Authorization: `Bearer ${token}`, // Jika menggunakan token
-    },
+    headers: getAuthHeaders(),
     credentials: 'include',
   });
 
@@ -106,9 +102,7 @@ export const deleteTask = async (taskId: string): Promise<Response> => {
 export const reviewDay = async (): Promise<ReviewResponse> => {
   const response = await fetch(`${API_BASE_URL}/api/schedule/review`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     credentials: 'include',
   });
 
@@ -123,9 +117,7 @@ export const reviewDay = async (): Promise<ReviewResponse> => {
 export const getActiveGoal = async (): Promise<ActiveGoalResponse> => {
   const response = await fetch(`${API_BASE_URL}/api/goals/active`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     credentials: 'include',
   });
 
@@ -146,11 +138,7 @@ export const createGoal = async (
 ): Promise<ActiveGoalResponse> => {
   const response = await fetch(`${API_BASE_URL}/api/goals`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      // Kita bisa menambahkan header lain jika diperlukan, misalnya untuk autentikasi
-      // Authorization: `Bearer ${token}`, // Jika menggunakan token
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(payload),
     credentials: 'include',
   });

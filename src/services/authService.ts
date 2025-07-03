@@ -1,4 +1,5 @@
 import { ChangePasswordPayload, LoginPayload, RegisterPayload } from '@/types'; // Kita akan buat tipe ini nanti
+import { getAuthHeaders } from './apiService';
 
 // Ganti URL ini dengan URL produksi backend Anda dari Fly.io
 // const API_BASE_URL = 'https://go-momentum-api-cold-dawn-7307.fly.dev';
@@ -7,9 +8,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 export const loginUser = async (credentials: LoginPayload) => {
   const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(credentials),
     credentials: 'include', // Pastikan untuk mengirim cookie
   });
@@ -25,9 +24,7 @@ export const loginUser = async (credentials: LoginPayload) => {
 export const registerUser = async (data: RegisterPayload) => {
   const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(data),
     credentials: 'include', // Pastikan untuk mengirim cookie
   });
@@ -44,7 +41,7 @@ export const registerUser = async (data: RegisterPayload) => {
 export const logoutUser = async () => {
   const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
     credentials: 'include', // Penting agar cookie terkirim dan bisa dihapus
   });
 
@@ -58,11 +55,7 @@ export const logoutUser = async () => {
 export const changePassword = async (payload: ChangePasswordPayload) => {
   const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      // Kita bisa menambahkan header lain jika diperlukan, misalnya untuk autentikasi
-      // Authorization: `Bearer ${token}`, // Jika menggunakan token
-    }, // Menggunakan helper dari apiService.ts
+    headers: getAuthHeaders(),
     body: JSON.stringify(payload),
     credentials: 'include',
   });

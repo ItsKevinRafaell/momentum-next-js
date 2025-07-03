@@ -15,25 +15,23 @@ import { loginUser } from '@/services/authService';
 import { LoginPayload } from '@/types';
 import { useMutation } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import { setCookie } from 'cookies-next';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const router = useRouter();
 
   const mutation = useMutation({
     mutationFn: (credentials: LoginPayload) => loginUser(credentials),
     onSuccess: (data) => {
       if (data.token) {
         toast.success('Login Berhasil!');
-        // Simpan token ke dalam cookie dari sisi klien
-        setCookie('token', data.token, { maxAge: 60 * 60 * 24 });
-        // Refresh halaman agar middleware bisa membaca cookie & redirect
-        router.refresh();
+        // Simpan token ke localStorage
+        localStorage.setItem('token', data.token);
+        console.log('Token disimpan:', data.token);
+        // Paksa full reload ke halaman utama
+        window.location.assign('/');
       } else {
         toast.error('Token tidak ditemukan di respons server.');
       }
