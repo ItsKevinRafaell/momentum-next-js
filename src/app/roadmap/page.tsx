@@ -2,10 +2,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getActiveGoal } from '@/services/apiService';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { deleteRoadmapStep, getActiveGoal } from '@/services/apiService';
 import { ActiveGoalResponse, RoadmapStep } from '@/types';
-import { Pencil, PlusCircle, Target } from 'lucide-react';
+import { Pencil, PlusCircle, Target, Trash2 } from 'lucide-react';
 
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import CreateGoalForm from '@/components/goals/CreateGoalForm';
@@ -22,12 +22,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import toast from 'react-hot-toast';
+import { DialogDescription } from '@radix-ui/react-dialog';
 
 export default function RoadmapPage() {
   // State untuk mengontrol semua dialog
   const [isAddStepOpen, setIsAddStepOpen] = useState(false);
   const [isEditGoalOpen, setIsEditGoalOpen] = useState(false);
   const [editingStep, setEditingStep] = useState<RoadmapStep | null>(null);
+  const [deletingStep, setDeletingStep] = useState<RoadmapStep | null>(null);
 
   const { data, isLoading, isError, error } = useQuery<
     ActiveGoalResponse,
@@ -35,6 +38,19 @@ export default function RoadmapPage() {
   >({
     queryKey: ['activeGoal'],
     queryFn: getActiveGoal,
+  });
+
+  const queryClient = useQueryClient();
+
+  const deleteStepMutation = useMutation({
+    mutationFn: deleteRoadmapStep,
+    onSuccess: () => {
+      toast.success('Langkah roadmap berhasil dihapus.');
+      queryClient.invalidateQueries({ queryKey: ['activeGoal'] });
+    },
+    onError: (error) => {
+      toast.error('Gagal menghapus langkah: ' + error.message);
+    },
   });
 
   if (isLoading) {
@@ -125,7 +141,7 @@ export default function RoadmapPage() {
             {Array.isArray(data.steps) && data.steps.length > 0 ? (
               data.steps.map((step) => (
                 <Card key={step.id}>
-                  <CardContent className='p-3 flex items-center justify-between'>
+                  <CardContent className='p-3 flex items-center justify-between gap-2'>
                     <p className='font-semibold flex-1'>
                       Langkah {step.step_order}: {step.title}
                     </p>
@@ -139,10 +155,15 @@ export default function RoadmapPage() {
                       >
                         <Pencil className='h-4 w-4' />
                       </Button>
-                      {/* Placeholder untuk tombol hapus nanti */}
-                      {/* <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-red-500">
-                            <Trash2 className="h-4 w-4" />
-                        </Button> */}
+
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                        className='h-8 w-8 text-slate-500 hover:text-red-500'
+                        onClick={() => setDeletingStep(step)}
+                      >
+                        <Trash2 className='h-4 w-4' />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -172,6 +193,37 @@ export default function RoadmapPage() {
               onSuccess={() => setEditingStep(null)}
             />
           )}
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={!!deletingStep}
+        onOpenChange={(open) => !open && setDeletingStep(null)}
+      >
+        <DialogContent className='sm:max-w-[425px]'>
+          <DialogHeader>
+            <DialogTitle>Apakah Anda Yakin?</DialogTitle>
+            <DialogDescription>
+              Tindakan ini akan menghapus langkah {deletingStep?.title} secara
+              permanen dan tidak bisa dibatalkan.
+            </DialogDescription>
+          </DialogHeader>
+          <div className='flex justify-end gap-2 pt-4'>
+            <Button variant='outline' onClick={() => setDeletingStep(null)}>
+              Batal
+            </Button>
+            <Button
+              className='bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800'
+              onClick={() => {
+                if (deletingStep) {
+                  deleteStepMutation.mutate(deletingStep.id);
+                  setDeletingStep(null); // Tutup dialog setelah aksi dipicu
+                }
+              }}
+              disabled={deleteStepMutation.isPending}
+            >
+              {deleteStepMutation.isPending ? 'Menghapus...' : 'Ya, Hapus'}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </DashboardLayout>

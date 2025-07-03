@@ -209,3 +209,16 @@ export const updateRoadmapStep = async (
 
   return response.json();
 };
+
+export const deleteRoadmapStep = async (stepId: string): Promise<Response> => {
+  const response = await fetch(`${API_BASE_URL}/api/roadmap-steps/${stepId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete roadmap step');
+  }
+  return response;
+};
