@@ -1,11 +1,15 @@
 // file: src/app/roadmap/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { deleteRoadmapStep, getActiveGoal } from '@/services/apiService';
+import {
+  deleteRoadmapStep,
+  getActiveGoal,
+  reorderRoadmapSteps,
+} from '@/services/apiService';
 import { ActiveGoalResponse, RoadmapStep } from '@/types';
-import { Pencil, PlusCircle, Target, Trash2 } from 'lucide-react';
+import { Pencil, PlusCircle, Target } from 'lucide-react';
 
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import CreateGoalForm from '@/components/goals/CreateGoalForm';
@@ -24,6 +28,13 @@ import {
 } from '@/components/ui/dialog';
 import toast from 'react-hot-toast';
 import { DialogDescription } from '@radix-ui/react-dialog';
+import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { SortableRoadmapItem } from '@/components/goals/SortableRoadmapItem'; // <-- Import baru
 
 export default function RoadmapPage() {
   // State untuk mengontrol semua dialog
@@ -31,6 +42,8 @@ export default function RoadmapPage() {
   const [isEditGoalOpen, setIsEditGoalOpen] = useState(false);
   const [editingStep, setEditingStep] = useState<RoadmapStep | null>(null);
   const [deletingStep, setDeletingStep] = useState<RoadmapStep | null>(null);
+  const [localSteps, setLocalSteps] = useState<RoadmapStep[]>([]);
+  const queryClient = useQueryClient();
 
   const { data, isLoading, isError, error } = useQuery<
     ActiveGoalResponse,
@@ -40,18 +53,51 @@ export default function RoadmapPage() {
     queryFn: getActiveGoal,
   });
 
-  const queryClient = useQueryClient();
+  // Sinkronisasi state lokal dengan data dari server
+  useEffect(() => {
+    if (data?.steps) {
+      setLocalSteps(data.steps);
+    }
+  }, [data?.steps]);
 
+  // Mutations
   const deleteStepMutation = useMutation({
     mutationFn: deleteRoadmapStep,
     onSuccess: () => {
       toast.success('Langkah roadmap berhasil dihapus.');
       queryClient.invalidateQueries({ queryKey: ['activeGoal'] });
     },
-    onError: (error) => {
-      toast.error('Gagal menghapus langkah: ' + error.message);
+    onError: (e: Error) => toast.error(`Gagal menghapus langkah: ${e.message}`),
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: reorderRoadmapSteps,
+    onSuccess: () => {
+      toast.success('Urutan roadmap diperbarui!');
+      queryClient.invalidateQueries({ queryKey: ['activeGoal'] });
+    },
+    onError: () => {
+      toast.error(
+        'Gagal menyimpan urutan baru. Mengembalikan ke urutan semula.'
+      );
+      if (data?.steps) setLocalSteps(data.steps); // Revert on error
     },
   });
+
+  // Drag and Drop Handler
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = localSteps.findIndex((step) => step.id === active.id);
+      const newIndex = localSteps.findIndex((step) => step.id === over.id);
+
+      const reorderedSteps = arrayMove(localSteps, oldIndex, newIndex);
+      setLocalSteps(reorderedSteps); // Optimistic UI update
+
+      const orderedIds = reorderedSteps.map((step) => step.id);
+      reorderMutation.mutate({ step_ids: orderedIds });
+    }
+  }
 
   if (isLoading) {
     return (
@@ -137,43 +183,27 @@ export default function RoadmapPage() {
               </DialogContent>
             </Dialog>
           </div>
-          <div className='space-y-4'>
-            {Array.isArray(data.steps) && data.steps.length > 0 ? (
-              data.steps.map((step) => (
-                <Card key={step.id}>
-                  <CardContent className='p-3 flex items-center justify-between gap-2'>
-                    <p className='font-semibold flex-1'>
-                      Langkah {step.step_order}: {step.title}
-                    </p>
-                    <div className='flex items-center'>
-                      {/* Tombol Edit untuk setiap langkah */}
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        className='h-8 w-8 text-slate-500 hover:text-blue-500'
-                        onClick={() => setEditingStep(step)}
-                      >
-                        <Pencil className='h-4 w-4' />
-                      </Button>
-
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        className='h-8 w-8 text-slate-500 hover:text-red-500'
-                        onClick={() => setDeletingStep(step)}
-                      >
-                        <Trash2 className='h-4 w-4' />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <p className='text-sm text-slate-500'>
-                Belum ada langkah roadmap. Tambahkan langkah pertama Anda!
-              </p>
-            )}
-          </div>
+          <DndContext
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={localSteps.map((s) => s.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className='space-y-4'>
+                {localSteps.map((step) => (
+                  <SortableRoadmapItem
+                    key={step.id}
+                    step={step}
+                    onEdit={() => setEditingStep(step)}
+                    onDelete={() => deleteStepMutation.mutate(step.id)}
+                    isDeleting={deleteStepMutation.isPending}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         </div>
       </div>
 

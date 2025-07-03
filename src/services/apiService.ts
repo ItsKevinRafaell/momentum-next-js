@@ -9,6 +9,7 @@ import {
   AddRoadmapStepPayload,
   RoadmapStep,
   UpdateRoadmapStepPayload,
+  ReorderRoadmapPayload,
 } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -221,4 +222,15 @@ export const deleteRoadmapStep = async (stepId: string): Promise<Response> => {
     throw new Error('Failed to delete roadmap step');
   }
   return response;
+};
+
+export const reorderRoadmapSteps = async (payload: ReorderRoadmapPayload) => {
+  const response = await fetch(`${API_BASE_URL}/api/roadmap/reorder`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+    credentials: 'include',
+  });
+  if (!response.ok) throw new Error('Failed to reorder roadmap');
+  return response.json();
 };
