@@ -72,3 +72,8 @@ export interface UpdateGoalPayload {
   goalId: string;
   description: string;
 }
+
+export interface AddRoadmapStepPayload {
+  goalId: string;
+  title: string;
+}

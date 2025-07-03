@@ -20,6 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import AddRoadmapStepForm from '@/components/goals/AddRoadmapStepForm';
 
 export default function RoadmapPage() {
   const [isAddStepOpen, setIsAddStepOpen] = useState(false);
@@ -114,10 +115,10 @@ export default function RoadmapPage() {
                 <DialogHeader>
                   <DialogTitle>Tambah Langkah Roadmap Baru</DialogTitle>
                 </DialogHeader>
-                {/* <AddRoadmapStepForm
+                <AddRoadmapStepForm
                   goalId={data.goal.id}
                   onSuccess={() => setIsAddStepOpen(false)}
-                /> */}
+                />
               </DialogContent>
             </Dialog>
           </div>
