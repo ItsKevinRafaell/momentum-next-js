@@ -254,3 +254,21 @@ export const updateRoadmapStepStatus = async (
   }
   return response.json();
 };
+
+export const getReviewByDate = async (
+  date: string
+): Promise<ReviewResponse | null> => {
+  const response = await fetch(`${API_BASE_URL}/api/schedule/history/${date}`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+    credentials: 'include',
+  });
+
+  if (response.status === 404) {
+    return null; // Kembalikan null jika tidak ada data
+  }
+  if (!response.ok) {
+    throw new Error('Failed to fetch history');
+  }
+  return response.json();
+};

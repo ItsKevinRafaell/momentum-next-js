@@ -4,13 +4,20 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Target, Settings, LogOut } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Target,
+  Settings,
+  LogOut,
+  CalendarDays,
+} from 'lucide-react';
 import { Button } from '../ui/button';
 import toast from 'react-hot-toast';
 
 const menuItems = [
   { name: 'Jadwal Hari Ini', icon: LayoutDashboard, href: '/' },
   { name: 'Roadmap & Tujuan', icon: Target, href: '/roadmap' },
+  { name: 'Riwayat', icon: CalendarDays, href: '/history' },
   { name: 'Pengaturan', icon: Settings, href: '/settings' },
 ];
 
