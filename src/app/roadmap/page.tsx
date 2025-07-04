@@ -27,7 +27,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import toast from 'react-hot-toast';
-import { DialogDescription } from '@radix-ui/react-dialog';
 import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -41,7 +40,6 @@ export default function RoadmapPage() {
   const [isAddStepOpen, setIsAddStepOpen] = useState(false);
   const [isEditGoalOpen, setIsEditGoalOpen] = useState(false);
   const [editingStep, setEditingStep] = useState<RoadmapStep | null>(null);
-  const [deletingStep, setDeletingStep] = useState<RoadmapStep | null>(null);
   const [localSteps, setLocalSteps] = useState<RoadmapStep[]>([]);
   const queryClient = useQueryClient();
 
@@ -60,7 +58,6 @@ export default function RoadmapPage() {
     }
   }, [data?.steps]);
 
-  // Mutations
   const deleteStepMutation = useMutation({
     mutationFn: deleteRoadmapStep,
     onSuccess: () => {
@@ -183,6 +180,7 @@ export default function RoadmapPage() {
               </DialogContent>
             </Dialog>
           </div>
+
           <DndContext
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
@@ -192,23 +190,32 @@ export default function RoadmapPage() {
               strategy={verticalListSortingStrategy}
             >
               <div className='space-y-4'>
-                {localSteps.map((step) => (
-                  <SortableRoadmapItem
-                    key={step.id}
-                    step={step}
-                    onEdit={() => setEditingStep(step)}
-                    onDelete={() => deleteStepMutation.mutate(step.id)}
-                    isDeleting={deleteStepMutation.isPending}
-                  />
-                ))}
+                {localSteps.length > 0 ? (
+                  localSteps.map((step) => (
+                    <SortableRoadmapItem
+                      key={step.id}
+                      step={step}
+                      onEdit={() => setEditingStep(step)}
+                      onDelete={() => deleteStepMutation.mutate(step.id)}
+                      // Tambahan: Hanya tampilkan status 'isDeleting' pada item yang sedang dihapus
+                      isDeleting={
+                        deleteStepMutation.isPending &&
+                        deleteStepMutation.variables === step.id
+                      }
+                    />
+                  ))
+                ) : (
+                  <p className='text-sm text-slate-500'>
+                    Belum ada langkah roadmap. Tambahkan langkah pertama Anda!
+                  </p>
+                )}
               </div>
             </SortableContext>
           </DndContext>
         </div>
       </div>
 
-      {/* --- DIALOG UNTUK EDIT LANGKAH ROADMAP --- */}
-      {/* Dialog ini berada di luar map, dan hanya muncul jika ada `editingStep` */}
+      {/* Dialog untuk Edit Langkah Roadmap */}
       <Dialog
         open={!!editingStep}
         onOpenChange={(open) => !open && setEditingStep(null)}
@@ -223,37 +230,6 @@ export default function RoadmapPage() {
               onSuccess={() => setEditingStep(null)}
             />
           )}
-        </DialogContent>
-      </Dialog>
-      <Dialog
-        open={!!deletingStep}
-        onOpenChange={(open) => !open && setDeletingStep(null)}
-      >
-        <DialogContent className='sm:max-w-[425px]'>
-          <DialogHeader>
-            <DialogTitle>Apakah Anda Yakin?</DialogTitle>
-            <DialogDescription>
-              Tindakan ini akan menghapus langkah {deletingStep?.title} secara
-              permanen dan tidak bisa dibatalkan.
-            </DialogDescription>
-          </DialogHeader>
-          <div className='flex justify-end gap-2 pt-4'>
-            <Button variant='outline' onClick={() => setDeletingStep(null)}>
-              Batal
-            </Button>
-            <Button
-              className='bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800'
-              onClick={() => {
-                if (deletingStep) {
-                  deleteStepMutation.mutate(deletingStep.id);
-                  setDeletingStep(null); // Tutup dialog setelah aksi dipicu
-                }
-              }}
-              disabled={deleteStepMutation.isPending}
-            >
-              {deleteStepMutation.isPending ? 'Menghapus...' : 'Ya, Hapus'}
-            </Button>
-          </div>
         </DialogContent>
       </Dialog>
     </DashboardLayout>

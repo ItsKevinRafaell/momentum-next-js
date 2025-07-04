@@ -78,8 +78,8 @@ export default function SettingsPage() {
 
   return (
     <DashboardLayout title='Pengaturan'>
-      <div className='grid gap-6'>
-        <Card>
+      <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
+        <Card className='md:col-span-1'>
           <CardHeader>
             <CardTitle>Profil Akun</CardTitle>
           </CardHeader>
@@ -101,7 +101,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className='md:col-span-1'>
           <CardHeader>
             <CardTitle>Ubah Password</CardTitle>
             <CardDescription>
@@ -149,7 +149,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className='md:col-span-1'>
           <CardHeader>
             <CardTitle>Tampilan</CardTitle>
             <CardDescription>
