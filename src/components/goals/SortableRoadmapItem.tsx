@@ -19,19 +19,22 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '../ui/alert-dialog';
+import { Checkbox } from '../ui/checkbox';
 
 interface SortableRoadmapItemProps {
   step: RoadmapStep;
   onEdit: () => void;
   onDelete: () => void;
-  isDeleting: boolean;
+  onStatusChange: (checked: boolean) => void; // <-- Prop baru untuk handle status
+  isProcessing: boolean; // <-- Prop baru untuk menonaktifkan tombol
 }
 
 export function SortableRoadmapItem({
   step,
   onEdit,
   onDelete,
-  isDeleting,
+  onStatusChange,
+  isProcessing,
 }: SortableRoadmapItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: step.id });
@@ -39,20 +42,40 @@ export function SortableRoadmapItem({
 
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-      <Card>
+      <Card
+        className={
+          step.status === 'completed' ? 'border-green-500 opacity-60' : ''
+        }
+      >
         <CardContent className='p-3 flex items-center justify-between gap-2'>
           <div className='p-2 cursor-grab touch-none' {...listeners}>
             <GripVertical className='h-5 w-5 text-slate-400' />
           </div>
-          <p className='font-semibold flex-1'>
+
+          <Checkbox
+            id={`step-${step.id}`}
+            checked={step.status === 'completed'}
+            onCheckedChange={onStatusChange} // <-- Panggil fungsi dari props
+            disabled={isProcessing} // <-- Gunakan prop
+            className='mr-2'
+          />
+
+          <label
+            htmlFor={`step-${step.id}`}
+            className={`font-semibold flex-1 ${
+              step.status === 'completed' ? 'line-through' : ''
+            }`}
+          >
             Langkah {step.step_order}: {step.title}
-          </p>
+          </label>
+
           <div className='flex items-center'>
             <Button
               variant='ghost'
               size='icon'
               className='h-8 w-8 text-slate-500 hover:text-blue-500'
               onClick={onEdit}
+              disabled={isProcessing}
             >
               <Pencil className='h-4 w-4' />
             </Button>
@@ -62,6 +85,7 @@ export function SortableRoadmapItem({
                   variant='ghost'
                   size='icon'
                   className='h-8 w-8 text-slate-500 hover:text-red-500'
+                  disabled={isProcessing}
                 >
                   <Trash2 className='h-4 w-4' />
                 </Button>
@@ -78,9 +102,9 @@ export function SortableRoadmapItem({
                   <AlertDialogAction
                     className='bg-red-600 hover:bg-red-700'
                     onClick={onDelete}
-                    disabled={isDeleting}
+                    disabled={isProcessing}
                   >
-                    {isDeleting ? 'Menghapus...' : 'Ya, Hapus'}
+                    {isProcessing ? 'Memproses...' : 'Ya, Hapus'}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

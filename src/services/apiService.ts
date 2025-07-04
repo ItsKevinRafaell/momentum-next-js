@@ -10,6 +10,7 @@ import {
   RoadmapStep,
   UpdateRoadmapStepPayload,
   ReorderRoadmapPayload,
+  UpdateRoadmapStepStatusPayload,
 } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -232,5 +233,24 @@ export const reorderRoadmapSteps = async (payload: ReorderRoadmapPayload) => {
     credentials: 'include',
   });
   if (!response.ok) throw new Error('Failed to reorder roadmap');
+  return response.json();
+};
+
+export const updateRoadmapStepStatus = async (
+  payload: UpdateRoadmapStepStatusPayload
+) => {
+  const { stepId, status } = payload;
+  const response = await fetch(
+    `${API_BASE_URL}/api/roadmap-steps/${stepId}/status`,
+    {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ status }),
+      credentials: 'include',
+    }
+  );
+  if (!response.ok) {
+    throw new Error('Failed to update roadmap step status');
+  }
   return response.json();
 };

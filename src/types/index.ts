@@ -87,6 +87,10 @@ export interface UpdateRoadmapStepPayload {
   stepId: string;
   title: string;
 }
+export interface UpdateRoadmapStepStatusPayload {
+  stepId: string;
+  status: string;
+}
 
 export interface ReorderRoadmapPayload {
   step_ids: string[];

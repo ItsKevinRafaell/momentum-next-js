@@ -7,6 +7,7 @@ import {
   deleteRoadmapStep,
   getActiveGoal,
   reorderRoadmapSteps,
+  updateRoadmapStepStatus,
 } from '@/services/apiService';
 import { ActiveGoalResponse, RoadmapStep } from '@/types';
 import { Pencil, PlusCircle, Target } from 'lucide-react';
@@ -95,6 +96,34 @@ export default function RoadmapPage() {
       reorderMutation.mutate({ step_ids: orderedIds });
     }
   }
+
+  const statusMutation = useMutation({
+    mutationFn: updateRoadmapStepStatus,
+    // Kita tidak perlu lagi optimistic update yang rumit di sini
+    onError: () => {
+      toast.error('Gagal memperbarui status. Perubahan dibatalkan.');
+      // Jika gagal, kembalikan state UI ke data asli dari server
+      if (data?.steps) setLocalSteps(data.steps);
+    },
+    onSuccess: () => {
+      toast.success('Progres roadmap diperbarui!');
+      // Cukup invalidate untuk memastikan sinkron, tapi UI sudah berubah duluan
+      queryClient.invalidateQueries({ queryKey: ['activeGoal'] });
+    },
+  });
+
+  // --- HANDLER BARU UNTUK UPDATE STATUS ---
+  const handleStatusChange = (stepId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+
+    // 1. LANGSUNG UPDATE STATE LOKAL (UI INSTAN)
+    setLocalSteps((prevSteps) =>
+      prevSteps.map((s) => (s.id === stepId ? { ...s, status: newStatus } : s))
+    );
+
+    // 2. JALANKAN MUTASI DI LATAR BELAKANG
+    statusMutation.mutate({ stepId: stepId, status: newStatus });
+  };
 
   if (isLoading) {
     return (
@@ -195,13 +224,16 @@ export default function RoadmapPage() {
                     <SortableRoadmapItem
                       key={step.id}
                       step={step}
+                      onStatusChange={() =>
+                        handleStatusChange(step.id, step.status)
+                      }
+                      // Tentukan status isProcessing
+                      isProcessing={
+                        statusMutation.isPending || deleteStepMutation.isPending
+                      }
                       onEdit={() => setEditingStep(step)}
                       onDelete={() => deleteStepMutation.mutate(step.id)}
                       // Tambahan: Hanya tampilkan status 'isDeleting' pada item yang sedang dihapus
-                      isDeleting={
-                        deleteStepMutation.isPending &&
-                        deleteStepMutation.variables === step.id
-                      }
                     />
                   ))
                 ) : (
