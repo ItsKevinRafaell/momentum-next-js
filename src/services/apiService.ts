@@ -272,3 +272,15 @@ export const getReviewByDate = async (
   }
   return response.json();
 };
+
+export const startNewDay = async (): Promise<Task[]> => {
+  const response = await fetch(`${API_BASE_URL}/api/schedule/start-day`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to start a new day and generate tasks');
+  }
+  return response.json();
+};

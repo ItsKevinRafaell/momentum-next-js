@@ -95,8 +95,9 @@ export interface UpdateRoadmapStepStatusPayload {
 export interface ReorderRoadmapPayload {
   step_ids: string[];
 }
-
 export interface ReviewResponse {
-  summary_json: TaskSummary[]; // Sesuaikan dengan nama field dari struct Go
-  ai_feedback_text: string;
+  userId: string;
+  reviewDate: string;
+  summary: TaskSummary[]; // Nama field harus 'summary'
+  aiFeedback: string; // Nama field harus 'aiFeedback'
 }

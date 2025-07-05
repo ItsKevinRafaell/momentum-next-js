@@ -5,7 +5,11 @@ import { useState } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
-import { getTodaySchedule, reviewDay } from '@/services/apiService';
+import {
+  getTodaySchedule,
+  reviewDay,
+  startNewDay,
+} from '@/services/apiService';
 import { ReviewResponse, Task } from '@/types';
 
 import TaskItem from './TaskItem';
@@ -20,7 +24,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { FileText, PlusCircle } from 'lucide-react';
+import { FileText, PlusCircle, Sparkles } from 'lucide-react';
 import { getGreetingBasedOnTime } from '@/lib/utils';
 
 export default function TaskList() {
@@ -28,6 +32,7 @@ export default function TaskList() {
   const [reviewData, setReviewData] = useState<ReviewResponse | null>(null);
   const queryClient = useQueryClient();
 
+  // 1. useQuery sekarang HANYA bertugas mengambil data yang sudah ada.
   const {
     data: tasks,
     isLoading,
@@ -36,6 +41,20 @@ export default function TaskList() {
   } = useQuery<Task[], Error>({
     queryKey: ['todaySchedule'],
     queryFn: getTodaySchedule,
+    refetchOnWindowFocus: true,
+  });
+
+  // 2. useMutation baru untuk memanggil endpoint 'start-day'
+  const startDayMutation = useMutation({
+    mutationFn: startNewDay,
+    onSuccess: () => {
+      toast.success('Jadwal barumu telah dibuat!');
+      // Setelah sukses, refresh query 'todaySchedule' untuk menampilkan tugas baru
+      queryClient.invalidateQueries({ queryKey: ['todaySchedule'] });
+    },
+    onError: (error) => {
+      toast.error('Gagal memulai hari: ' + error.message);
+    },
   });
 
   const reviewMutation = useMutation({
@@ -107,14 +126,22 @@ export default function TaskList() {
           tasks.map((task) => <TaskItem key={task.id} task={task} />)
         ) : (
           <div className='flex flex-col items-center justify-center text-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-12 min-h-[400px]'>
-            <div className='rounded-full bg-slate-100 dark:bg-slate-800 p-4'>
+            <div className='rounded-full bg-slate-100 dark:bg-slate-800 p-4 mb-4'>
               <FileText className='h-8 w-8 text-slate-500 dark:text-slate-400' />
             </div>
-            <h3 className='mt-4 text-lg font-semibold'>Tidak Ada Tugas</h3>
-            <p className='mt-2 text-sm text-slate-500 dark:text-slate-400'>
-              Anda belum memiliki tugas untuk hari ini. Tambahkan tugas baru
-              atau nikmati hari luang Anda!
+            <h3 className='text-lg font-semibold'>Jadwal Hari Ini Kosong</h3>
+            <p className='mt-2 mb-6 text-sm text-slate-500 dark:text-slate-400'>
+              Klik tombol di bawah untuk meminta AI membuatkan rencana untukmu.
             </p>
+            <Button
+              onClick={() => startDayMutation.mutate()}
+              disabled={startDayMutation.isPending}
+            >
+              <Sparkles className='h-4 w-4 mr-2' />
+              {startDayMutation.isPending
+                ? 'Membuat Rencana...'
+                : 'Rencanakan Hariku'}
+            </Button>
           </div>
         )}
       </div>
